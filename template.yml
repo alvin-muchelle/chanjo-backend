@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  chanjo-backend
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 512
+    Environment:
+      Variables:
+        TABLE_MOTHERS: mothers
+        TABLE_BABIES: babies
+        TABLE_REMINDERS: reminders
+        TABLE_SCHEDULE: vaccination_schedule
+
+        JWT_SECRET: my_secret_key_
+        JWT_EXPIRES_IN: 24h
+
+        EMAIL_USER: muchellealvin@gmail.com
+        EMAIL_PASS: ladk linj twnf xlmm
+        ALLOWED_ORIGIN: https://chanjo-frontend.vercel.app/
+
+Resources:
+
+  # 1) The single, explicitly‐named API Gateway.
+  ChanjoApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: ChanjoApi
+      StageName: production
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+      BinaryMediaTypes: []
+
+  # 2) Your single Lambda, wired to that one API Gateway:
+  ChanjoApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: chanjo-api
+      Description: "Express API wrapped with serverless-http"
+      CodeUri: api/
+      Handler: server.handler
+      Policies:
+        - arn:aws:iam::395380601835:policy/Chanjo-API-Lambda-Policy
+
+      Events:
+        # 2a) Explicit root “/”
+        RootProxy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ChanjoApiGateway
+            Path: /
+            Method: ANY
+
+        # 2b) Catch‐all proxy for everything else
+        ApiGatewayProxy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ChanjoApiGateway
+            Path: /{proxy+}
+            Method: ANY
+
+  # 3) cron jobs (they don’t create a new API, so they won’t spawn a “Stage”)
+  ChanjoDailyCronFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: chanjo-cron-daily
+      Description: "Daily cron at 2 PM Nairobi (11 AM UTC) to process/send reminders"
+      CodeUri: cron/
+      Handler: daily.handler
+      Policies:
+        - arn:aws:iam::395380601835:policy/Chanjo-Cron-Lambda-Policy
+      Events:
+        DailySchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 11 * * ? *)
+            Enabled: True
+
+  ChanjoWeeklyCronFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: chanjo-cron-weekly
+      Description: "Weekly cron at 2 PM Nairobi (11 AM UTC) to process/send reminders"
+      CodeUri: cron/
+      Handler: weekly.handler
+      Policies:
+        - arn:aws:iam::395380601835:policy/Chanjo-Cron-Lambda-Policy
+      Events:
+        WeeklySchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 11 ? * MON *)
+            Enabled: True
+
+Outputs:
+  ApiUrl:
+    Description: "Invoke URL for Chanjo API (production)"
+    Value: !Sub "https://${ChanjoApiGateway}.execute-api.${AWS::Region}.amazonaws.com/production/"

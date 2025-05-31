@@ -1,0 +1,40 @@
+{
+  "name": "chanjo-backend",
+  "version": "1.0.0",
+  "description": "Express API for Chanjo vaccination‑tracker",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.821.0",
+    "@aws-sdk/client-ses": "^3.817.0",
+    "@aws-sdk/credential-provider-ini": "^3.821.0",
+    "@aws-sdk/lib-dynamodb": "^3.817.0",
+    "ajv": "^8.17.1",
+    "ajv-errors": "^3.0.0",
+    "ajv-formats": "^3.0.1",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-json-validator-middleware": "^3.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.16.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^7.0.3",
+    "pg": "^8.15.6",
+    "serverless-http": "^3.2.0",
+    "uuid": "^11.1.0",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "nodemon": "^3.1.10"
+  }
+}

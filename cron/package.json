@@ -1,0 +1,13 @@
+{
+  "name": "chanjo-cron",
+  "version": "1.0.0",
+  "description": "Cron Lambdas for Chanjo vaccination‑tracker",
+  "main": "daily.js",
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/lib-dynamodb": "^3.817.0",
+    "@aws-sdk/client-ses": "^3.817.0",
+    "dotenv": "^16.5.0",
+    "nodemailer": "^7.0.3"
+  }
+}
