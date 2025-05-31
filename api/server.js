@@ -153,8 +153,6 @@ app.get('/', (_req, res) => res.status(200).send('Chanjo chonjo backend is runni
 app.post('/api/signup', async (req, res) => {
   try {
     const { email } = req.body;
-    console.log('〰〰〰 SIGNUP ROUTE HIT:', req.method, req.path);
-    console.log(">>> RAW REQ.BODY:", req.body);
     if (!email) return res.status(400).json({ error: 'Email required' });
 
     // 1) Check if user exists
