@@ -208,6 +208,5 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/osx,node,linux,windows,sam
 
 node_modules
-batchMigrateOnDemandSchemas.js
-migrateSchedule.js
-schedules.json
+migrations
+old_db
