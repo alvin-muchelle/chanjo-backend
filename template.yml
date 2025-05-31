@@ -21,7 +21,7 @@ Globals:
 
         EMAIL_USER: muchellealvin@gmail.com
         EMAIL_PASS: ladk linj twnf xlmm
-        ALLOWED_ORIGIN: https://master.d1s5f4b1nmbk2r.amplifyapp.com/
+        ALLOWED_ORIGIN: https://master.d1s5f4b1nmbk2r.amplifyapp.com
 
 Resources:
 
@@ -34,7 +34,7 @@ Resources:
       Cors:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
         AllowHeaders: "'Content-Type,Authorization'"
-        AllowOrigin: "https://master.d1s5f4b1nmbk2r.amplifyapp.com/"
+        AllowOrigin: "'*'"
       BinaryMediaTypes: []
 
   # 2) Your single Lambda, wired to that one API Gateway:
