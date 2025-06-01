@@ -137,17 +137,17 @@ The following environment variables must be configured:
 
 ### How SAM, CloudFormation & S3 Work Together
 
-1. **SAM \(Serverless Application Model\)**
+a. **SAM \(Serverless Application Model\)**
 
    * Write a high‑level `template.yml` using `AWS::Serverless::*` resources.
    * `sam build` packages each Lambda folder (`api/`, `cron/`) into a ZIP and transforms the SAM syntax into a standard CloudFormation template, placing everything in `.aws-sam/build/`.
 
-2. **S3**
+b. **S3**
 
    * SAM uploads those ZIP files to the S3 bucket you configure.
    * Your generated CloudFormation template then refers to those code bundles by their S3 URIs.
 
-3. **CloudFormation**
+c. **CloudFormation**
 
    * SAM hands off the packaged template, complete with pointers to the S3‐hosted ZIPs—to CloudFormation.
    * CloudFormation provisions all resources in the correct order:\n
