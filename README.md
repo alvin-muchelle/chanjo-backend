@@ -117,11 +117,11 @@ cd ..
 
 The system includes two scheduled jobs:
 
-1. **Daily Reminders** (Runs at 11:00 AM UTC daily)
+1. **Daily Reminders** (Runs at 1400hrs EAT daily)
    - Sends reminders for vaccinations due the next day
    - Located in `cron/daily.js`
 
-2. **Weekly Reminders** (Runs every Monday at 11:00 AM UTC)
+2. **Weekly Reminders** (Runs every Monday at 1400hrs EAT)
    - Sends reminders for vaccinations due in the next week
    - Located in `cron/weekly.js`
 
