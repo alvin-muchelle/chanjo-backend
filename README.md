@@ -11,7 +11,6 @@ Chanjo is a vaccination reminder system designed to help parents track and manag
 - [Cron Jobs](#cron-jobs)
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
-- [License](#license)
 
 ## Features
 
@@ -136,7 +135,7 @@ The following environment variables must be configured:
 
 ## Deployment
 
-# How SAM, CloudFormation & S3 Work Together
+### How SAM, CloudFormation & S3 Work Together
 
 1. **SAM \(Serverless Application Model\)**
 
@@ -158,12 +157,12 @@ The following environment variables must be configured:
      * IAM roles
    * If anything fails, CloudFormation can roll back the entire change set automatically.
 
-### 1. Build the application
+## 1. Build the application
 ```bash
 sam build
 ```
 
-### 2. Deploy to AWS
+## 2. Deploy to AWS
 ```bash
 sam deploy --guided
 ```
@@ -174,5 +173,5 @@ Follow the prompts to configure:
 - Parameter overrides
 - IAM capabilities
 
-### 3. After deployment
+## 3. After deployment
 The API endpoint will be displayed in the outputs. Use this as the base URL for all API requests routed from AWS Amplify.
