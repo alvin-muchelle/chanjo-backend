@@ -138,13 +138,6 @@ The following environment variables must be configured:
 
 # How SAM, CloudFormation & S3 Work Together
 
-When you run:
-
-```bash
-sam build
-sam deploy --guided
-```` 
-
 1. **SAM \(Serverless Application Model\)**
 
    * Write a high‑level `template.yml` using `AWS::Serverless::*` resources.
@@ -164,16 +157,6 @@ sam deploy --guided
      * EventBridge rules
      * IAM roles
    * If anything fails, CloudFormation can roll back the entire change set automatically.
-
-In short:
-
-* **SAM** = your developer‐friendly layer (write `template.yml`, run `sam build/deploy`).
-* **S3** = the “middleman” that stores each Lambda ZIP so CloudFormation can fetch it.
-* **CloudFormation** = the provisioning engine that actually creates or updates API Gateway, Lambda, EventBridge rules, IAM policies, etc., reading your code packages from S3.
-
-By understanding this three‑way flow, you’ll know why SAM needs an S3 bucket (so CloudFormation can load your function code) and how everything is orchestrated under the hood.
-
-```
 
 ### 1. Build the application
 ```bash
