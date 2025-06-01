@@ -40,7 +40,7 @@ async function sendCombinedReminderEmail(email, fullName, reminders) {
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px;">
         <p>Dear ${fullName},</p>
-        <p>Your baby has these vaccines due on ${formattedDate}:</p>
+        <p>Your baby has the following vaccinations due on ${formattedDate}:</p>
         <ul>${reminderListHtml}</ul>
         <p>Regards,<br/>Chanjo Team</p>
       </div>
