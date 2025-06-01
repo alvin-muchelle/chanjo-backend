@@ -38,7 +38,7 @@ Chanjo is a vaccination reminder system designed to help parents track and manag
 
 ## Architecture
 
-![System Architecture](https://via.placeholder.com/600x400?text=System+Architecture+Diagram) *Placeholder for architecture diagram*
+![System Architecture](https://chanjo-sam-deploy-bucket-2.s3.us-east-1.amazonaws.com/Chanjo+Chonjo+architecture.png) *Placeholder for architecture diagram*
 
 The system uses:
 - **AWS Lambda** for serverless compute
