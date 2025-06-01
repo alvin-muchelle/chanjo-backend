@@ -35,7 +35,6 @@ Chanjo is a vaccination reminder system designed to help parents track and manag
 │   ├── daily.js              # Daily reminder handler
 │   └── weekly.js             # Weekly reminder handler
 ├── template.yml              # AWS SAM configuration
-└── ...                       # Other configuration files
 ```
 
 ## Architecture
@@ -137,7 +136,7 @@ The following environment variables must be configured:
 
 ## Deployment
 
-## How SAM, CloudFormation & S3 Work Together
+# How SAM, CloudFormation & S3 Work Together
 
 When you run:
 
@@ -148,22 +147,22 @@ sam deploy --guided
 
 1. **SAM \(Serverless Application Model\)**
 
-   * You write a high‑level `template.yml` using `AWS::Serverless::*` resources (e.g. `AWS::Serverless::Function`, `AWS::Serverless::Api`).
-   * `sam build` packages each Lambda folder (`api/`, `cron/`) into a ZIP and transforms your SAM syntax into a standard CloudFormation template, placing everything in `.aws-sam/build/`.
+   * Write a high‑level `template.yml` using `AWS::Serverless::*` resources.
+   * `sam build` packages each Lambda folder (`api/`, `cron/`) into a ZIP and transforms the SAM syntax into a standard CloudFormation template, placing everything in `.aws-sam/build/`.
 
 2. **S3**
 
-   * Before CloudFormation can create or update your Lambdas, SAM uploads those ZIP files to the S3 bucket you configured (e.g. `chanjo-sam-deploy-bucket-2`).
-   * Your generated CloudFormation template then refers to those code bundles by their S3 URIs (for example:
-     `s3://chanjo-sam-deploy-bucket-2/chanjo-backend-2/SomeHashValue.zip`).
+   * SAM uploads those ZIP files to the S3 bucket you configure.
+   * Your generated CloudFormation template then refers to those code bundles by their S3 URIs.
 
 3. **CloudFormation**
 
-   * SAM hands off the transformed (packaged) template—complete with pointers to the S3‐hosted ZIPs—to CloudFormation.
-   * CloudFormation provisions (or updates) all resources in the correct order:
-     - API Gateway
-     - Lambda functions (pulling code from the S3 bucket)
-     - EventBridge rules, IAM roles, etc.
+   * SAM hands off the packaged template, complete with pointers to the S3‐hosted ZIPs—to CloudFormation.
+   * CloudFormation provisions all resources in the correct order:\n
+     * API Gateway
+     * Lambda functions
+     * EventBridge rules
+     * IAM roles
    * If anything fails, CloudFormation can roll back the entire change set automatically.
 
 In short:
@@ -174,7 +173,6 @@ In short:
 
 By understanding this three‑way flow, you’ll know why SAM needs an S3 bucket (so CloudFormation can load your function code) and how everything is orchestrated under the hood.
 
-```
 ```
 
 ### 1. Build the application
