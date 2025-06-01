@@ -1,7 +1,5 @@
 # Chanjo Backend - Vaccination Reminder System
 
-![Chanjo Logo](https://via.placeholder.com/150?text=Chanjo) *Placeholder for logo*
-
 Chanjo is a vaccination reminder system designed to help parents track and manage their children's vaccination schedules. This backend service provides the core functionality for user authentication, profile management, baby tracking, vaccination scheduling, and automated reminder emails.
 
 ## Table of Contents
@@ -131,17 +129,53 @@ The following environment variables must be configured:
 
 | Variable          | Description                           | Example Value                     |
 |-------------------|---------------------------------------|-----------------------------------|
-| TABLE_MOTHERS     | Mothers table name                    | `mothers`                         |
-| TABLE_BABIES      | Babies table name                     | `babies`                          |
-| TABLE_REMINDERS   | Reminders table name                  | `reminders`                       |
-| TABLE_SCHEDULE    | Vaccination schedule table name       | `vaccination_schedule`            |
-| JWT_SECRET        | Secret for JWT tokens                 | `my_secret_key_`                  |
+| JWT_SECRET        | Secret for JWT tokens                 | `your_secret_key_`                |
 | JWT_EXPIRES_IN    | JWT token expiration time             | `24h`                             |
-| EMAIL_USER        | Email sender address                  | `muchellealvin@gmail.com`         |
-| EMAIL_PASS        | Email service password                | `ladk linj twnf xlmm`             |
+| EMAIL_USER        | Email sender address                  | `youremail@example.com`           |
+| EMAIL_PASS        | Email service password                | `your app pass key`               |
 | ALLOWED_ORIGIN    | Allowed CORS origin                   | `https://your-frontend-domain.com`|
 
 ## Deployment
+
+## How SAM, CloudFormation & S3 Work Together
+
+When you run:
+
+```bash
+sam build
+sam deploy --guided
+```` 
+
+1. **SAM \(Serverless Application Model\)**
+
+   * You write a high‑level `template.yml` using `AWS::Serverless::*` resources (e.g. `AWS::Serverless::Function`, `AWS::Serverless::Api`).
+   * `sam build` packages each Lambda folder (`api/`, `cron/`) into a ZIP and transforms your SAM syntax into a standard CloudFormation template, placing everything in `.aws-sam/build/`.
+
+2. **S3**
+
+   * Before CloudFormation can create or update your Lambdas, SAM uploads those ZIP files to the S3 bucket you configured (e.g. `chanjo-sam-deploy-bucket-2`).
+   * Your generated CloudFormation template then refers to those code bundles by their S3 URIs (for example:
+     `s3://chanjo-sam-deploy-bucket-2/chanjo-backend-2/SomeHashValue.zip`).
+
+3. **CloudFormation**
+
+   * SAM hands off the transformed (packaged) template—complete with pointers to the S3‐hosted ZIPs—to CloudFormation.
+   * CloudFormation provisions (or updates) all resources in the correct order:
+     - API Gateway
+     - Lambda functions (pulling code from the S3 bucket)
+     - EventBridge rules, IAM roles, etc.
+   * If anything fails, CloudFormation can roll back the entire change set automatically.
+
+In short:
+
+* **SAM** = your developer‐friendly layer (write `template.yml`, run `sam build/deploy`).
+* **S3** = the “middleman” that stores each Lambda ZIP so CloudFormation can fetch it.
+* **CloudFormation** = the provisioning engine that actually creates or updates API Gateway, Lambda, EventBridge rules, IAM policies, etc., reading your code packages from S3.
+
+By understanding this three‑way flow, you’ll know why SAM needs an S3 bucket (so CloudFormation can load your function code) and how everything is orchestrated under the hood.
+
+```
+```
 
 ### 1. Build the application
 ```bash
