@@ -157,12 +157,12 @@ The following environment variables must be configured:
      * IAM roles
    * If anything fails, CloudFormation can roll back the entire change set automatically.
 
-## 1. Build the application
+### 1. Build the application
 ```bash
 sam build
 ```
 
-## 2. Deploy to AWS
+### 2. Deploy to AWS
 ```bash
 sam deploy --guided
 ```
@@ -173,5 +173,5 @@ Follow the prompts to configure:
 - Parameter overrides
 - IAM capabilities
 
-## 3. After deployment
+### 3. After deployment
 The API endpoint will be displayed in the outputs. Use this as the base URL for all API requests routed from AWS Amplify.
