@@ -94,13 +94,13 @@ export const handler = async (event) => {
         TableName: 'mothers',
         Key: { userId: motherId }
       }));
-      if (!mother || !mother.user?.email) {
+      if (!mother || !email) {
         console.warn(`Mother not found or missing email for ID ${motherId}. Skipping.`);
         continue;
       }
 
       // Send combined email
-      await sendCombinedReminderEmail(mother.user.email, mother.full_name, reminders);
+      await sendCombinedReminderEmail(email, mother.full_name, reminders);
 
       // Mark each reminder as sent
       for (const reminder of reminders) {
