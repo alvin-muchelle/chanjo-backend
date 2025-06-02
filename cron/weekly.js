@@ -14,7 +14,7 @@ import {
 
 let ddb;  // Will hold the DynamoDB client
 
-// SES‐backed nodemailer transporter (requires EMAIL_FROM & AWS_REGION in env)
+// SES‐backed nodemailer transporter (ensure AWS_REGION and EMAIL_FROM are set)
 const sesClient = new SESClient({ region: process.env.AWS_REGION });
 const transporter = nodemailer.createTransport({ SES: sesClient });
 
@@ -28,6 +28,7 @@ async function ensureDbConnected() {
 
 // Helper: send combined reminder email via SES
 async function sendCombinedReminderEmail(email, fullName, reminders) {
+  // All reminders share the same vaccination_date for this mother
   const vaccinationDate = new Date(reminders[0].vaccination_date);
   const formattedDate = vaccinationDate.toDateString();
 
@@ -53,7 +54,7 @@ async function sendCombinedReminderEmail(email, fullName, reminders) {
 // Lambda handler
 export const handler = async (event) => {
   try {
-    // 1) Ensure DynamoDB is initialized
+    // 1) Ensure DynamoDB is connected
     await ensureDbConnected();
 
     const nowISO = new Date().toISOString();
@@ -79,32 +80,27 @@ export const handler = async (event) => {
       return { statusCode: 200, body: 'No weekly reminders.' };
     }
 
-    // 3) Group reminders by motherId
+    // 3) Group by motherId
     const weeklyByMother = dueWeekly.reduce((acc, r) => {
       if (!acc[r.motherId]) acc[r.motherId] = [];
       acc[r.motherId].push(r);
       return acc;
     }, {});
 
-    // 4) For each mother, fetch her record, send combined email, and mark as sent
+    // 4) For each mother, fetch her email & name, send combined email, then mark as sent
     for (const [motherId, reminders] of Object.entries(weeklyByMother)) {
       // Fetch mother record
       const { Item: mother } = await ddb.send(new GetCommand({
         TableName: 'mothers',
         Key: { userId: motherId }
       }));
-
-      // mother.email is a top‐level attribute
-      const email = mother?.email;
-      const fullName = mother?.full_name;
-
-      if (!mother || !email) {
+      if (!mother || !mother.email) {
         console.warn(`Mother not found or missing email for ID ${motherId}. Skipping.`);
         continue;
       }
 
       // Send combined email
-      await sendCombinedReminderEmail(email, fullName, reminders);
+      await sendCombinedReminderEmail(mother.email, mother.full_name, reminders);
 
       // Mark each reminder as sent
       for (const reminder of reminders) {
