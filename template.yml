@@ -70,7 +70,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: chanjo-cron-daily
-      Description: "Daily cron at 2 PM Nairobi (11 AM UTC) to process/send reminders"
+      Description: "Daily cron at 1400hrs Nairobi (11 AM UTC) to process/send reminders"
       CodeUri: cron/
       Handler: daily.handler
       Policies:
@@ -86,7 +86,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: chanjo-cron-weekly
-      Description: "Weekly cron at 2 PM Nairobi (11 AM UTC) to process/send reminders"
+      Description: "Weekly cron at 1400hrs Nairobi (11 AM UTC) to process/send reminders"
       CodeUri: cron/
       Handler: weekly.handler
       Policies:

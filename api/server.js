@@ -632,7 +632,7 @@ app.post(
       if (diffDays >= 7) {
         const weeklyRem = new Date(vaccDate);
         weeklyRem.setDate(vaccDate.getDate() - 7);
-        weeklyRem.setHours(14, 0, 0, 0);
+        weeklyRem.setHours(11, 0, 0, 0);
         if (weeklyRem > now) {
           toWrite.push({
             PutRequest: {
@@ -654,7 +654,7 @@ app.post(
       // Daily reminder
       const dailyRem = new Date(vaccDate);
       dailyRem.setDate(vaccDate.getDate() - 1);
-      dailyRem.setHours(14, 0, 0, 0);
+      dailyRem.setHours(11, 0, 0, 0);
       if (dailyRem > now) {
         toWrite.push({
           PutRequest: {
@@ -942,7 +942,7 @@ app.post(
         if (diffDays >= 7) {
           const weeklyRem = new Date(vaccDate);
           weeklyRem.setDate(vaccDate.getDate() - 7);
-          weeklyRem.setHours(14, 0, 0, 0);
+          weeklyRem.setHours(11, 0, 0, 0);
           if (weeklyRem > now) {
             const scheduledDateStr = weeklyRem.toISOString().split("T")[0];
             const vacDateStr = vaccDate.toISOString();
@@ -967,7 +967,7 @@ app.post(
         // Daily reminder
         const dailyRem = new Date(vaccDate);
         dailyRem.setDate(vaccDate.getDate() - 1);
-        dailyRem.setHours(14, 0, 0, 0);
+        dailyRem.setHours(11, 0, 0, 0);
         if (dailyRem > now) {
           const scheduledDateStr = dailyRem.toISOString().split("T")[0];
           const vacDateStr = vaccDate.toISOString();

@@ -3,7 +3,7 @@
  * Lambda function for processing all due 'weekly' reminders once per week.
  */
 
-import { connectDB, getDB } from '../db.js';
+import { connectDB, getDB } from './db.js';
 import nodemailer from 'nodemailer';
 import { SESClient } from '@aws-sdk/client-ses';
 import {
@@ -12,20 +12,23 @@ import {
   UpdateCommand
 } from "@aws-sdk/lib-dynamodb";
 
-// No parseAgeToDays needed here
+let ddb;  // Will hold the DynamoDB client
 
-let ddb;
-(async () => {
-  await connectDB();
-  ddb = getDB();
-})();
-
-// SES transporter
+// SES‐backed nodemailer transporter (ensure AWS_REGION and EMAIL_FROM are set)
 const sesClient = new SESClient({ region: process.env.AWS_REGION });
 const transporter = nodemailer.createTransport({ SES: sesClient });
 
+async function ensureDbConnected() {
+  if (!ddb) {
+    await connectDB();
+    ddb = getDB();
+    console.info("✅ DynamoDB connected inside weekly handler");
+  }
+}
+
 // Helper: send combined reminder email via SES
 async function sendCombinedReminderEmail(email, fullName, reminders) {
+  // All reminders share the same vaccination_date for this mother
   const vaccinationDate = new Date(reminders[0].vaccination_date);
   const formattedDate = vaccinationDate.toDateString();
 
@@ -51,10 +54,13 @@ async function sendCombinedReminderEmail(email, fullName, reminders) {
 // Lambda handler
 export const handler = async (event) => {
   try {
+    // 1) Ensure DynamoDB is connected
+    await ensureDbConnected();
+
     const nowISO = new Date().toISOString();
 
-    // 1) Query all unsent 'weekly' reminders whose scheduled_at <= now
-    const { Items: dueReminders = [] } = await ddb.send(new QueryCommand({
+    // 2) Query all unsent 'weekly' reminders whose scheduled_at <= now
+    const { Items: dueWeekly = [] } = await ddb.send(new QueryCommand({
       TableName: 'reminders',
       IndexName: 'ByScheduledAt',
       KeyConditionExpression: '#t = :weekly AND scheduled_at <= :now',
@@ -69,20 +75,21 @@ export const handler = async (event) => {
       }
     }));
 
-    if (dueReminders.length === 0) {
+    if (dueWeekly.length === 0) {
       console.log('No weekly reminders to send.');
       return { statusCode: 200, body: 'No weekly reminders.' };
     }
 
-    // 2) Group by motherId
-    const remindersByMother = dueReminders.reduce((acc, r) => {
+    // 3) Group by motherId
+    const weeklyByMother = dueWeekly.reduce((acc, r) => {
       if (!acc[r.motherId]) acc[r.motherId] = [];
       acc[r.motherId].push(r);
       return acc;
     }, {});
 
-    // 3) For each mother, fetch email, send combined email, mark as sent
-    for (const [motherId, reminders] of Object.entries(remindersByMother)) {
+    // 4) For each mother, fetch her email & name, send combined email, then mark as sent
+    for (const [motherId, reminders] of Object.entries(weeklyByMother)) {
+      // Fetch mother record
       const { Item: mother } = await ddb.send(new GetCommand({
         TableName: 'mothers',
         Key: { userId: motherId }

@@ -3,7 +3,7 @@
  * Lambda function for processing all due 'daily' reminders once per day.
  */
 
-import { connectDB, getDB } from '../db.js';
+import { connectDB, getDB } from './db.js';
 import nodemailer from 'nodemailer';
 import { SESClient } from '@aws-sdk/client-ses';
 import {
@@ -12,25 +12,24 @@ import {
   UpdateCommand
 } from "@aws-sdk/lib-dynamodb";
 
-// Because parseAgeToDays is not needed here, omitted.
+let ddb;  // will hold the DynamoDB client
 
-let ddb;
-(async () => {
-  // Ensure a single DB connection per Lambda container
-  await connectDB();
-  ddb = getDB();
-})();
-
-// SES-based nodemailer transporter
+// SES‐backed nodemailer transporter (make sure EMAIL_FROM is set)
 const sesClient = new SESClient({ region: process.env.AWS_REGION });
 const transporter = nodemailer.createTransport({ SES: sesClient });
 
+async function ensureDbConnected() {
+  if (!ddb) {
+    await connectDB();
+    ddb = getDB();
+    console.info("✅ DynamoDB connected inside handler");
+  }
+}
+
 // Helper: send combined reminder email via SES
 async function sendCombinedReminderEmail(email, fullName, reminders) {
-  // All reminders have the same vaccination_date (since we grouped by scheduled_at==today)
   const vaccinationDate = new Date(reminders[0].vaccination_date);
   const formattedDate = vaccinationDate.toDateString();
-
   const reminderListHtml = reminders
     .map(r => `<li><strong>${r.vaccine}</strong></li>`)
     .join('');
@@ -53,12 +52,15 @@ async function sendCombinedReminderEmail(email, fullName, reminders) {
 // Lambda handler
 export const handler = async (event) => {
   try {
+    // 1) Make sure our DynamoDB client is initialized
+    await ensureDbConnected();
+
     const nowISO = new Date().toISOString();
 
-    // 1) Query all unsent 'daily' reminders whose scheduled_at <= now
+    // 2) Query all unsent 'daily' reminders whose scheduled_at <= now
     const { Items: dueDaily = [] } = await ddb.send(new QueryCommand({
       TableName: 'reminders',
-      IndexName: 'ByScheduledAt',  
+      IndexName: 'ByScheduledAt',
       KeyConditionExpression: '#t = :daily AND scheduled_at <= :now',
       FilterExpression: 'sent = :false',
       ExpressionAttributeNames: {
@@ -76,14 +78,14 @@ export const handler = async (event) => {
       return { statusCode: 200, body: 'No daily reminders.' };
     }
 
-    // 2) Group by motherId
+    // 3) Group by motherId
     const dailyByMother = dueDaily.reduce((acc, r) => {
       if (!acc[r.motherId]) acc[r.motherId] = [];
       acc[r.motherId].push(r);
       return acc;
     }, {});
 
-    // 3) For each mother, fetch her email & name, send combined email, mark as sent
+    // 4) For each mother, fetch her email & name, send combined email, mark as sent
     for (const [motherId, reminders] of Object.entries(dailyByMother)) {
       // Fetch mother record
       const { Item: mother } = await ddb.send(new GetCommand({
