@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import { SNSClient, SubscribeCommand, ListSubscriptionsByTopicCommand} from '@aws-sdk/client-sns';
 import { v4 as uuidv4 } from 'uuid';
 import { connectDB, getDB } from './db.js';
 import cors from 'cors';
@@ -150,59 +151,66 @@ app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 app.get('/', (_req, res) => res.status(200).send('Chanjo chonjo backend is running'));
 
 // --- Signup ---
+const sns = new SNSClient({ region: 'us-east-1' });
+
 app.post('/api/signup', async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email required' });
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email required' });
+    }
 
-    // 1) Check if user exists
-    const { Items } = await ddb.send(new QueryCommand({
+    // 1) Check if user already exists (using a GSI on email)
+    const existing = await ddb.send(new QueryCommand({
       TableName: 'mothers',
       IndexName: 'EmailIndex',
       KeyConditionExpression: 'email = :e',
       ExpressionAttributeValues: { ':e': email }
     }));
-    if (Items.length > 0) {
-      return res.status(409).json({ message: 'User exists' });
+    if (existing.Count > 0) {
+      return res.status(409).json({ message: 'User already exists' });
     }
 
-    // 2) Generate IDs & hash password
-    const userId = uuidv4();
+    // 2) Create a temporary password & hash it
     const rawPassword = Math.floor(100000 + Math.random() * 900000).toString();
-    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+    const hashed = await bcrypt.hash(rawPassword, 10);
+    const userId = uuidv4();
 
-    // 3) Create mother record
+    // 3) Put a new “mother” item into DynamoDB
     await ddb.send(new PutCommand({
       TableName: 'mothers',
       Item: {
         userId,
         email,
+        full_name: null,
+        babies: [],
         user: {
-          hashed_password: hashedPassword,
+          hashed_password: hashed,
           must_reset_password: true,
           created_at: new Date().toISOString()
-        },
-        full_name: null,
-        babies: []
+        }
       }
     }));
 
     // 4) Send temporary password
     await sendTemporaryPassword(email, rawPassword);
 
-    // 5) Issue JWT (15 min expiry)
+    // 5) Issue a short‐lived JWT so they can log in and reset
     const token = jwt.sign(
       { userId, email },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
 
-    return res.status(201).json({ message: 'User registered', token });
-  } catch (error) {
-    console.error('Signup error:', error);
+    return res.status(201).json({ message: 'Registered. Check your inbox to confirm SNS subscription.', token });
+  }
+  catch (err) {
+    console.error('Signup error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
+
+export default app;
 
 // --- Reset Password ---
 app.post('/api/reset-password', async (req, res) => {
@@ -265,6 +273,24 @@ app.post('/api/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
+
+    // Subscribe this email to our SNS topic (protocol="email")
+   // Before subscribing, check if this email is already subscribed
+    const existingSubs = await sns.send(new ListSubscriptionsByTopicCommand({
+      TopicArn: process.env.SNS_TOPIC_ARN
+    }));
+
+    const alreadySubscribed = existingSubs.Subscriptions.some(
+      (sub) => sub.Protocol === "email" && sub.Endpoint === email
+    );
+
+    if (!alreadySubscribed) {
+      await sns.send(new SubscribeCommand({
+        TopicArn: process.env.SNS_TOPIC_ARN,
+        Protocol: 'email',
+        Endpoint: email
+      }));
+    }
 
     res.json({
       message: 'Login successful',
@@ -899,13 +925,16 @@ app.post(
       const now = new Date();
 
       // 2) Delete any existing UNSENT reminders for this baby
+      const nowISO = new Date().toISOString();
       const { Items: existing = [] } = await ddb.send(new QueryCommand({
         TableName: "reminders",
         IndexName: "ByBaby", // GSI on (babyId, sent)
         KeyConditionExpression: "babyId = :b AND sent = :false",
+        FilterExpression: "scheduled_at > :now", // 🔁 Only delete future reminders
         ExpressionAttributeValues: {
           ":b": babyId,
           ":false": "false",
+          ":now": nowISO,
         },
       }));
       const deletes = existing.map((r) => ({

@@ -37,12 +37,12 @@ Resources:
         AllowOrigin: "'*'"
       BinaryMediaTypes: []
 
-  # 2) Your single Lambda, wired to that one API Gateway:
+  # 2)  single Lambda, wired to that one API Gateway:
   ChanjoApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: chanjo-api
-      Description: "Express API wrapped with serverless-http"
+      Description: "Express API that is wrapped with serverless-http"
       CodeUri: api/
       Handler: server.handler
       Policies:
@@ -65,12 +65,12 @@ Resources:
             Path: /{proxy+}
             Method: ANY
 
-  # 3) cron jobs (they don’t create a new API, so they won’t spawn a “Stage”)
+  # 3) cron jobs
   ChanjoDailyCronFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: chanjo-cron-daily
-      Description: "Daily cron at 1400hrs Nairobi (11 AM UTC) to process/send reminders"
+      Description: "Daily cron at 1400hrs Nairobi (11AM UTC) to process/send reminders"
       CodeUri: cron/
       Handler: daily.handler
       Policies:

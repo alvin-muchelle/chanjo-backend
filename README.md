@@ -45,7 +45,7 @@ The system uses:
 - **API Gateway** for HTTP endpoints
 - **DynamoDB** for data storage
 - **CloudWatch Events** for cron scheduling
-- **SES** for email notifications
+- **SNS** for email notifications
 
 ## Getting Started
 
