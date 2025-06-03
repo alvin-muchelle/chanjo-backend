@@ -210,8 +210,6 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-export default app;
-
 // --- Reset Password ---
 app.post('/api/reset-password', async (req, res) => {
   try {

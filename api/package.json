@@ -21,7 +21,8 @@
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^7.0.3",
     "serverless-http": "^3.2.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.25.49"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
